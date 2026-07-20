@@ -52,4 +52,4 @@ Os relacionamentos foram modelados para explorar agregação e composição:
 
 Essa modelagem serve como base para a implementação em Java utilizando os conceitos de POO exigidos no projeto: classes abstratas, herança, polimorfismo, composição/agregação e uso de enums para controlar tipos de ações e procedimentos
 
-![Diagrama UML da clínica](PATASYNC-/PataSync.drawio.jpg)
+![Diagrama UML da clínica](C:\Users\kasym\OneDrive\Documentos\PataSync-\PataSync.drawio.png)
