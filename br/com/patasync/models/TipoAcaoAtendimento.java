@@ -8,3 +8,4 @@ public enum TipoAcaoAtendimento {
     PROCEDIMENTO,
     ENCERRAMENTO
 }
+
