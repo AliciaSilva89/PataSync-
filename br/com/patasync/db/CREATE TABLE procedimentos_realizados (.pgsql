@@ -8,3 +8,4 @@ CREATE TABLE procedimentos_realizados (
     CONSTRAINT fk_proc_realizado_procedimento
         FOREIGN KEY (procedimento_id) REFERENCES procedimentos(procedimento_id)
 );
+
