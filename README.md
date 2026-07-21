@@ -1,5 +1,48 @@
 # PataSync-
-🐾O PataSync é uma plataforma moderna e inteligente de gestão para clínicas veterinárias. Nascido da necessidade de descomplicar a rotina dos profissionais de medicina veterinária, o sistema atua como o ponto central de controle da clínica, integrando de forma fluida o atendimento clínico, a administração financeira e a comunicação com os tutores.
+🐾PataSync – Sistema de Clínica Veterinária
+
+PataSync é um sistema de cadastro e acompanhamento de atendimentos em uma clínica veterinária. Ele registra tutores, animais, profissionais da clínica e todo o histórico clínico de cada atendimento.
+Tecnologias
+
+    Linguagem: Java
+
+    Banco de dados: PostgreSQL (database patasync)
+
+    Ferramentas: VS Code com extensão PostgreSQL, psql
+
+Modelo de dados (resumo)
+
+    pessoa: dados gerais de pessoas (nome, CPF, contato, endereço).
+
+    tutor: indica quais pessoas são tutores (clientes) da clínica.
+
+    funcionario: vincula pessoas ao papel de funcionário, com salário e tipo (ATENDENTE, VETERINARIO, ASSISTENTE_VETERINARIO).
+
+    assistente_veterinario: especializa funcionários que atuam como assistentes de veterinário.
+
+    animal: cadastro de animais, sempre ligados a um tutor.
+
+    medicamentos: catálogo de medicamentos usados na clínica (nome, princípio ativo, classe, dosagem, valor, observações).
+
+    procedimentos: catálogo de consultas, exames, cirurgias e procedimentos de enfermagem.
+
+    atendimentos: cada consulta/internação do animal, com veterianário responsável, tipo de atendimento e datas.
+
+    medicacoes_aplicadas: registro das medicações aplicadas durante um atendimento.
+
+    procedimentos_realizados: registro dos procedimentos executados em cada atendimento.
+
+    acoes_atendimento: trilha de ações dentro de um atendimento (triagem, diagnóstico, medicação, procedimento, encerramento), ligadas ao profissional e, opcionalmente, à medicação/procedimento.
+
+Como rodar o banco de dados
+
+    Crie o banco patasync no PostgreSQL.
+
+    Execute os scripts .pgsql na pasta db para criar todas as tabelas.
+
+    Use os scripts de INSERT para popular dados iniciais de pessoas, tutores, funcionários, animais, medicamentos e procedimentos.
+
+    Acompanhe e teste consultas usando o painel POSTGRESQL EXPLORER no VS Code ou o psql.
 
 
 Visão geral do sistema
