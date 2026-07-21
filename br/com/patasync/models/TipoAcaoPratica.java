@@ -1,0 +1,10 @@
+package br.com.patasync.models;
+
+public enum TipoAcaoPratica {
+    TRIAGEM_AVALIACAO,
+    PREVENCAO_ROTINA,
+    DIAGNOSTICO,
+    TERAPEUTICA_ENFERMAGEM,
+    URGENCIA_SUPORTE_VITAL,
+    CIRURGICA_ANESTESICA
+}
