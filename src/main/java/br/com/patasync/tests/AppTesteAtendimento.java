@@ -3,6 +3,7 @@ package br.com.patasync.tests;
 import br.com.patasync.db.dao.AnimalDAO;
 import br.com.patasync.db.dao.FuncionarioDAO;
 import br.com.patasync.db.dao.MedicacaoDAO;
+import br.com.patasync.db.dao.PessoaDAO;
 import br.com.patasync.db.dao.TutorDAO;
 import br.com.patasync.models.*;
 import br.com.patasync.services.AtendimentoService;
@@ -25,14 +26,44 @@ public class AppTesteAtendimento {
         TutorDAO tutorDAO = new TutorDAO();
         AnimalDAO animalDAO = new AnimalDAO();
         MedicacaoDAO medicacaoDAO = new MedicacaoDAO();
+        PessoaDAO pessoaDAO = new PessoaDAO();
 
-        // Buscar atendente disponível
-        Atendente atendente = funcionarioDAO.buscarPrimeiroAtendente();
-        if (atendente == null) {
-            System.out.println("Nenhum atendente cadastrado no sistema.");
-            scanner.close();
-            return;
+        System.out.print("Digite o CPF do atendente (ou deixe vazio para cadastrar novo): ");
+        String cpfAtendente = scanner.nextLine().replaceAll("[^0-9]", "");
+        
+        Atendente atendente;
+        
+        if (cpfAtendente.isEmpty()) {
+            // Cadastro de novo atendente
+            atendente = cadastrarNovoAtendente(scanner, pessoaDAO, funcionarioDAO);
+            if (atendente == null) {
+                System.out.println("Falha no cadastro do atendente.");
+                scanner.close();
+                return;
+            }
+        } else {
+            // Buscar atendente por CPF
+            atendente = funcionarioDAO.buscarAtendentePorCPF(cpfAtendente);
+            if (atendente == null) {
+                System.out.println("Atendente não encontrado com o CPF: " + cpfAtendente);
+                System.out.println("Deseja cadastrar um novo atendente? (S/N)");
+                String opcao = scanner.nextLine().toUpperCase();
+                
+                if (opcao.equals("S")) {
+                    atendente = cadastrarNovoAtendente(scanner, pessoaDAO, funcionarioDAO);
+                    if (atendente == null) {
+                        System.out.println("Falha no cadastro do atendente.");
+                        scanner.close();
+                        return;
+                    }
+                } else {
+                    System.out.println("Operação cancelada.");
+                    scanner.close();
+                    return;
+                }
+            }
         }
+        
         System.out.println("Atendente logado: " + atendente.getNome());
 
         // Buscar veterinário disponível
@@ -413,5 +444,83 @@ public class AppTesteAtendimento {
         } else {
             System.out.println("Erro ao cadastrar medicação.");
         }
+    }
+
+    private static Atendente cadastrarNovoAtendente(Scanner scanner, PessoaDAO pessoaDAO, FuncionarioDAO funcionarioDAO) {
+        System.out.println("\n=== Cadastro de Novo Atendente ===");
+        
+        System.out.print("Nome completo: ");
+        String nome = scanner.nextLine();
+        
+        System.out.print("CPF (apenas números): ");
+        String cpf = scanner.nextLine().replaceAll("[^0-9]", "");
+        
+        System.out.print("Telefone: ");
+        String telefone = scanner.nextLine();
+        
+        System.out.print("Email: ");
+        String email = scanner.nextLine();
+        
+        System.out.print("Logradouro (rua/avenida): ");
+        String logradouro = scanner.nextLine();
+        
+        System.out.print("Número: ");
+        String numero = scanner.nextLine();
+        
+        System.out.print("Complemento (opcional, pode deixar vazio): ");
+        String complemento = scanner.nextLine();
+        
+        System.out.print("CEP: ");
+        String cep = scanner.nextLine();
+        
+        System.out.print("Cidade: ");
+        String cidade = scanner.nextLine();
+        
+        System.out.print("Estado (UF): ");
+        String estado = scanner.nextLine();
+        
+        System.out.print("Profissão: ");
+        String profissao = scanner.nextLine();
+        
+        System.out.print("Data de nascimento (YYYY-MM-DD): ");
+        String dataNascimento = scanner.nextLine();
+        
+        System.out.print("Sexo (M/F): ");
+        String sexo = scanner.nextLine().toUpperCase();
+        
+        System.out.print("Estado civil: ");
+        String estadoCivil = scanner.nextLine();
+        
+        System.out.print("Salário: ");
+        String salarioTexto = scanner.nextLine();
+        salarioTexto = salarioTexto.replaceAll("[^0-9.,]", "");
+        salarioTexto = salarioTexto.replace(",", ".");
+        double salario = Double.parseDouble(salarioTexto);
+        
+        // Inserir pessoa
+        int pessoaId = pessoaDAO.inserirPessoa(nome, cpf, telefone, email, logradouro, numero, 
+                                               complemento, cep, cidade, estado, profissao, 
+                                               dataNascimento, sexo, estadoCivil);
+        
+        if (pessoaId == -1) {
+            System.out.println("Erro ao cadastrar pessoa no banco de dados.");
+            return null;
+        }
+        
+        // Inserir funcionário como atendente
+        int funcionarioId = funcionarioDAO.inserirFuncionario(pessoaId, salario, "ATENDENTE");
+        
+        if (funcionarioId == -1) {
+            System.out.println("Erro ao cadastrar funcionário no banco de dados.");
+            return null;
+        }
+        
+        // Criar objeto Atendente
+        Atendente novoAtendente = new Atendente(nome, cpf, telefone, email, logradouro, numero,
+                                               complemento, cep, cidade, estado, profissao,
+                                               java.time.LocalDate.parse(dataNascimento), sexo, estadoCivil, salario);
+        
+        System.out.println("Atendente cadastrado com sucesso!");
+        return novoAtendente;
     }
 }

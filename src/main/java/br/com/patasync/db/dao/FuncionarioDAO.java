@@ -204,4 +204,48 @@ public class FuncionarioDAO {
             rs.getDouble("salario")
         );
     }
+
+    public int inserirFuncionario(int pessoaId, double salario, String tipoFuncionario) {
+        String sql = "INSERT INTO funcionario (pessoa_id, salario, tipo_funcionario) " +
+                     "VALUES (?, ?, ?) RETURNING funcionario_id";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, pessoaId);
+            stmt.setDouble(2, salario);
+            stmt.setString(3, tipoFuncionario);
+            
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("funcionario_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public Atendente buscarAtendentePorCPF(String cpf) {
+        String sql = "SELECT p.pessoa_id, p.nome, p.cpf, p.telefone, p.email, " +
+                     "p.logradouro, p.numero, p.complemento, p.cep, p.cidade, p.estado, " +
+                     "p.profissao, p.data_nascimento, p.sexo, p.estado_civil, f.salario " +
+                     "FROM pessoa p " +
+                     "JOIN funcionario f ON p.pessoa_id = f.pessoa_id " +
+                     "WHERE p.cpf = ? AND f.tipo_funcionario = 'ATENDENTE'";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, cpf);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return mapearAtendente(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

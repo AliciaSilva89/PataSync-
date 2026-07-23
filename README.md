@@ -2,47 +2,133 @@
 🐾PataSync – Sistema de Clínica Veterinária
 
 PataSync é um sistema de cadastro e acompanhamento de atendimentos em uma clínica veterinária. Ele registra tutores, animais, profissionais da clínica e todo o histórico clínico de cada atendimento.
-Tecnologias
 
-    Linguagem: Java
+## Tecnologias
 
-    Banco de dados: PostgreSQL (database patasync)
+- **Linguagem**: Java 11
+- **Banco de dados**: PostgreSQL (database patasync)
+- **Build**: Maven (via Maven Wrapper)
+- **Persistência**: JDBC com PostgreSQL Driver
+- **Ferramentas**: VS Code com extensão PostgreSQL, psql
 
-    Ferramentas: VS Code com extensão PostgreSQL, psql
+## Modelo de dados (resumo)
 
-Modelo de dados (resumo)
+- **pessoa**: dados gerais de pessoas (nome, CPF, contato, endereço)
+- **tutor**: indica quais pessoas são tutores (clientes) da clínica
+- **funcionario**: vincula pessoas ao papel de funcionário, com salário e tipo (ATENDENTE, VETERINARIO, ASSISTENTE_VETERINARIO)
+- **assistente_veterinario**: especializa funcionários que atuam como assistentes de veterinário
+- **animal**: cadastro de animais, sempre ligados a um tutor
+- **medicamentos**: catálogo de medicamentos usados na clínica (nome, princípio ativo, classe, dosagem, valor, observações)
+- **procedimentos**: catálogo de consultas, exames, cirurgias e procedimentos de enfermagem
+- **atendimentos**: cada consulta/internação do animal, com veterinário responsável, tipo de atendimento e datas
+- **medicacoes_aplicadas**: registro das medicações aplicadas durante um atendimento
+- **procedimentos_realizados**: registro dos procedimentos executados em cada atendimento
+- **acoes_atendimento**: trilha de ações dentro de um atendimento (triagem, diagnóstico, medicação, procedimento, encerramento), ligadas ao profissional e, opcionalmente, à medicação/procedimento
 
-    pessoa: dados gerais de pessoas (nome, CPF, contato, endereço).
+## Configuração do Banco de Dados
 
-    tutor: indica quais pessoas são tutores (clientes) da clínica.
+### Criar o banco de dados
+```sql
+CREATE DATABASE patasync;
+```
 
-    funcionario: vincula pessoas ao papel de funcionário, com salário e tipo (ATENDENTE, VETERINARIO, ASSISTENTE_VETERINARIO).
+### Executar scripts SQL
+Os scripts SQL estão localizados em `src/main/java/br/com/patasync/db/`:
 
-    assistente_veterinario: especializa funcionários que atuam como assistentes de veterinário.
+1. **Scripts de criação de tabelas**: Execute todos os arquivos `CREATE TABLE *.pgsql` para criar as tabelas
+2. **Script de dados iniciais**: Execute `insert_data.sql` para popular o banco com dados de teste (pessoas, tutores, funcionários, animais, medicamentos e procedimentos)
 
-    animal: cadastro de animais, sempre ligados a um tutor.
+### Configurar conexão
+Edite o arquivo `src/main/java/br/com/patasync/db/DatabaseConnection.java` se necessário:
 
-    medicamentos: catálogo de medicamentos usados na clínica (nome, princípio ativo, classe, dosagem, valor, observações).
+```java
+private static final String URL = "jdbc:postgresql://localhost:5432/patasync";
+private static final String USER = "postgres";
+private static final String PASSWORD = "sua_senha_aqui";
+```
 
-    procedimentos: catálogo de consultas, exames, cirurgias e procedimentos de enfermagem.
+## Como Compilar e Executar
 
-    atendimentos: cada consulta/internação do animal, com veterianário responsável, tipo de atendimento e datas.
+### Compilar o projeto
+```powershell
+$env:JAVA_HOME="C:\Program Files\Microsoft\jdk-11.0.23.9-hotspot"
+.\mvnw.cmd clean install
+```
 
-    medicacoes_aplicadas: registro das medicações aplicadas durante um atendimento.
+### Executar o aplicativo
+```powershell
+$env:JAVA_HOME="C:\Program Files\Microsoft\jdk-11.0.23.9-hotspot"
+java -cp target\PataSync-1.0-SNAPSHOT.jar;target\dependency\* br.com.patasync.tests.AppTesteAtendimento
+```
 
-    procedimentos_realizados: registro dos procedimentos executados em cada atendimento.
+## Fluxo do Aplicativo
 
-    acoes_atendimento: trilha de ações dentro de um atendimento (triagem, diagnóstico, medicação, procedimento, encerramento), ligadas ao profissional e, opcionalmente, à medicação/procedimento.
+O aplicativo `AppTesteAtendimento` simula um fluxo completo de atendimento veterinário:
 
-Como rodar o banco de dados
+1. **Login do Atendente**: Busca automaticamente o primeiro atendente disponível no banco
+2. **Carregar Equipe**: Carrega veterinário e assistente disponíveis
+3. **Buscar Tutor por CPF**: Solicita CPF do tutor e busca no banco de dados
+4. **Selecionar Animal**:
+   - Lista todos os animais do tutor
+   - Permite selecionar animal existente pelo número
+   - Permite cadastrar novo animal (nome, espécie, raça, idade, peso)
+5. **Registro de Medicações**:
+   - Lista todas as medicações disponíveis no banco
+   - Permite seleção múltipla de medicações (separadas por vírgula, ex: 1,3,5)
+   - Para cada medicação, solicita a quantidade
+   - Permite cadastrar nova medicação se necessário
+6. **Diagnóstico**: Veterinário registra diagnóstico
+7. **Procedimentos**: Registro de procedimentos realizados
+8. **Encerramento**: Atendente encerra o atendimento
+9. **Histórico**: Exibe todas as ações registradas no atendimento
 
-    Crie o banco patasync no PostgreSQL.
+## Camada de Persistência (DAO)
 
-    Execute os scripts .pgsql na pasta db para criar todas as tabelas.
+O sistema utiliza o padrão DAO (Data Access Object) para acesso ao banco de dados:
 
-    Use os scripts de INSERT para popular dados iniciais de pessoas, tutores, funcionários, animais, medicamentos e procedimentos.
+- **DatabaseConnection**: Gerencia a conexão com o PostgreSQL
+- **TutorDAO**: Busca tutores por CPF ou ID
+- **AnimalDAO**: Busca animais por tutor, nome ou ID; permite inserir novos animais
+- **FuncionarioDAO**: Busca atendentes, veterinários e assistentes
+- **MedicacaoDAO**: Busca todas as medicações, busca por ID e permite inserir novas medicações
 
-    Acompanhe e teste consultas usando o painel POSTGRESQL EXPLORER no VS Code ou o psql.
+## Estrutura do Projeto
+
+```
+PataSync-/
+├── src/main/java/br/com/patasync/
+│   ├── db/
+│   │   ├── DatabaseConnection.java
+│   │   ├── dao/
+│   │   │   ├── TutorDAO.java
+│   │   │   ├── AnimalDAO.java
+│   │   │   ├── FuncionarioDAO.java
+│   │   │   └── MedicacaoDAO.java
+│   │   ├── insert_data.sql
+│   │   └── *.pgsql (scripts SQL de criação de tabelas)
+│   ├── models/
+│   │   ├── Pessoa.java
+│   │   ├── Tutor.java
+│   │   ├── Funcionario.java
+│   │   ├── Veterinario.java
+│   │   ├── AssistenteVeterinario.java
+│   │   ├── Atendente.java
+│   │   ├── Animal.java
+│   │   ├── Atendimento.java
+│   │   ├── Medicacao.java
+│   │   ├── Procedimento.java
+│   │   └── AcaoAtendimento.java
+│   ├── services/
+│   │   └── AtendimentoService.java
+│   └── tests/
+│       └── AppTesteAtendimento.java
+├── pom.xml
+├── mvnw.cmd (Maven Wrapper)
+├── .mvn/ (Maven Wrapper configuration)
+├── uml/
+│   └── PataSync.drawio.png
+└── README.md
+```
 
 
 Visão geral do sistema
