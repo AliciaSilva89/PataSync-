@@ -14,54 +14,67 @@ public class AppTesteAtendimento {
 
         Scanner scanner = new Scanner(System.in);
 
-        // === Carregar dados do banco de dados ===
+        // === Login do Atendente ===
+        System.out.println("=== Sistema PataSync - Atendimento Veterinário ===");
+        System.out.println("=== Login do Atendente ===");
+        
+        FuncionarioDAO funcionarioDAO = new FuncionarioDAO();
         TutorDAO tutorDAO = new TutorDAO();
         AnimalDAO animalDAO = new AnimalDAO();
-        FuncionarioDAO funcionarioDAO = new FuncionarioDAO();
 
-        // Buscar primeiro tutor do banco
-        Tutor tutor = tutorDAO.buscarPrimeiro();
-        if (tutor == null) {
-            System.out.println("Nenhum tutor encontrado no banco de dados.");
-            scanner.close();
-            return;
-        }
-        System.out.println("Tutor carregado: " + tutor.getNome());
-
-        // Buscar primeiro animal do tutor
-        Animal animal = animalDAO.buscarPrimeiroPorTutor(1, tutor);
-        if (animal == null) {
-            System.out.println("Nenhum animal encontrado para o tutor no banco de dados.");
-            scanner.close();
-            return;
-        }
-        System.out.println("Animal carregado: " + animal.getNome());
-        tutor.adicionarAnimal(animal);
-
-        // Buscar funcionários do banco
+        // Buscar atendente disponível
         Atendente atendente = funcionarioDAO.buscarPrimeiroAtendente();
         if (atendente == null) {
-            System.out.println("Nenhum atendente encontrado no banco de dados.");
+            System.out.println("Nenhum atendente cadastrado no sistema.");
             scanner.close();
             return;
         }
-        System.out.println("Atendente carregado: " + atendente.getNome());
+        System.out.println("Atendente logado: " + atendente.getNome());
 
-        AssistenteVeterinario assistente = funcionarioDAO.buscarPrimeiroAssistente();
-        if (assistente == null) {
-            System.out.println("Nenhum assistente encontrado no banco de dados.");
-            scanner.close();
-            return;
-        }
-        System.out.println("Assistente carregado: " + assistente.getNome());
-
+        // Buscar veterinário disponível
         Veterinario veterinario = funcionarioDAO.buscarPrimeiroVeterinario();
         if (veterinario == null) {
-            System.out.println("Nenhum veterinário encontrado no banco de dados.");
+            System.out.println("Nenhum veterinário cadastrado no sistema.");
             scanner.close();
             return;
         }
-        System.out.println("Veterinário carregado: " + veterinario.getNome());
+        System.out.println("Veterinário disponível: " + veterinario.getNome());
+
+        // Buscar assistente disponível
+        AssistenteVeterinario assistente = funcionarioDAO.buscarPrimeiroAssistente();
+        if (assistente == null) {
+            System.out.println("Nenhum assistente cadastrado no sistema.");
+            scanner.close();
+            return;
+        }
+        System.out.println("Assistente disponível: " + assistente.getNome());
+
+        // === Buscar Tutor ===
+        System.out.println("\n=== Buscar Tutor ===");
+        System.out.print("Digite o CPF do tutor: ");
+        String cpfTutor = scanner.nextLine().replaceAll("[^0-9]", "");
+        
+        Tutor tutor = tutorDAO.buscarPorCPF(cpfTutor);
+        if (tutor == null) {
+            System.out.println("Tutor não encontrado com o CPF: " + cpfTutor);
+            scanner.close();
+            return;
+        }
+        System.out.println("Tutor encontrado: " + tutor.getNome());
+
+        // === Buscar Animal ===
+        System.out.println("\n=== Buscar Animal ===");
+        System.out.print("Digite o nome do animal: ");
+        String nomeAnimal = scanner.nextLine();
+        
+        Animal animal = animalDAO.buscarPorNomeETutor(nomeAnimal, tutor);
+        if (animal == null) {
+            System.out.println("Animal não encontrado para este tutor.");
+            scanner.close();
+            return;
+        }
+        System.out.println("Animal encontrado: " + animal.getNome() + " (" + animal.getEspecie() + ")");
+        tutor.adicionarAnimal(animal);
 
         AtendimentoService atendimentoService = new AtendimentoService();
 

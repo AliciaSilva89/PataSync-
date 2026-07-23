@@ -52,6 +52,29 @@ public class TutorDAO {
         return null;
     }
 
+    public Tutor buscarPorCPF(String cpf) {
+        String sql = "SELECT p.pessoa_id, p.nome, p.cpf, p.telefone, p.email, " +
+                     "p.logradouro, p.numero, p.complemento, p.cep, p.cidade, p.estado, " +
+                     "p.profissao, p.data_nascimento, p.sexo, p.estado_civil " +
+                     "FROM pessoa p " +
+                     "JOIN tutor t ON p.pessoa_id = t.pessoa_id " +
+                     "WHERE p.cpf = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, cpf);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return mapearTutor(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private Tutor mapearTutor(ResultSet rs) throws SQLException {
         return new Tutor(
             rs.getString("nome"),

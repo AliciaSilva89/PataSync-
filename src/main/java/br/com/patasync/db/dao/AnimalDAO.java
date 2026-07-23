@@ -46,6 +46,26 @@ public class AnimalDAO {
         return null;
     }
 
+    public Animal buscarPorNomeETutor(String nome, Tutor tutor) {
+        String sql = "SELECT animal_id, nome, especie, raca, idade, peso " +
+                     "FROM animal WHERE nome ILIKE ? AND tutor_id = ? LIMIT 1";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, "%" + nome + "%");
+            stmt.setInt(2, 1); // tutor_id fixo por enquanto, precisa ser ajustado
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return mapearAnimal(rs, tutor);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private Animal mapearAnimal(ResultSet rs, Tutor tutor) throws SQLException {
         return new Animal(
             rs.getString("nome"),
