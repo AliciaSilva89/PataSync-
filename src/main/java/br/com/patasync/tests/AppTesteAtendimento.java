@@ -180,6 +180,7 @@ public class AppTesteAtendimento {
         // Abrir atendimento
         Atendimento atendimento = atendimentoService.abrirAtendimento(
             atendente,
+            tutor,
             animal,
             veterinario
         );
@@ -257,7 +258,7 @@ public class AppTesteAtendimento {
         // Resumo
         System.out.println("\n=== Resumo do Atendimento ===");
         System.out.println("Animal: " + atendimento.getAnimal().getNome());
-        System.out.println("Tutor: " + atendimento.getAnimal().getTutor().getNome());
+        System.out.println("Tutor: " + atendimento.getTutor().getNome());
         System.out.println("Duração (min): " + atendimento.calcularDuracaoEmMinutos());
         System.out.println("Total (R$): " + atendimento.calcularTotal());
 

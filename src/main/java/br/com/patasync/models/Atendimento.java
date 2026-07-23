@@ -8,6 +8,7 @@ import java.util.List;
 public class Atendimento {
 
     private Animal animal;
+    private Tutor tutor;
     private LocalDateTime dataHoraInicio;
     private LocalDateTime dataHoraFim;
     private Veterinario responsavelPrincipal;
@@ -16,9 +17,11 @@ public class Atendimento {
     private List<AcaoAtendimento> historicoAcoes;
 
     public Atendimento(Animal animal,
+                       Tutor tutor,
                        LocalDateTime dataHoraInicio,
                        Veterinario responsavelPrincipal) {
         this.animal = animal;
+        this.tutor = tutor;
         this.dataHoraInicio = dataHoraInicio;
         this.responsavelPrincipal = responsavelPrincipal;
         this.procedimentos = new ArrayList<>();
@@ -32,6 +35,14 @@ public class Atendimento {
 
     public void setAnimal(Animal animal) {
         this.animal = animal;
+    }
+
+    public Tutor getTutor() {
+        return tutor;
+    }
+
+    public void setTutor(Tutor tutor) {
+        this.tutor = tutor;
     }
 
     public LocalDateTime getDataHoraInicio() {
