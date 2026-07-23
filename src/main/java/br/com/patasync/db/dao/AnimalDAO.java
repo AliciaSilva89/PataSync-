@@ -5,6 +5,8 @@ import br.com.patasync.models.Animal;
 import br.com.patasync.models.Tutor;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AnimalDAO {
 
@@ -64,6 +66,51 @@ public class AnimalDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public List<Animal> buscarTodosPorTutor(int tutorId, Tutor tutor) {
+        String sql = "SELECT animal_id, nome, especie, raca, idade, peso " +
+                     "FROM animal WHERE tutor_id = ? ORDER BY nome";
+
+        List<Animal> animais = new ArrayList<>();
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, tutorId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                animais.add(mapearAnimal(rs, tutor));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return animais;
+    }
+
+    public int inserirAnimal(Animal animal, int tutorId) {
+        String sql = "INSERT INTO animal (nome, especie, raca, idade, peso, tutor_id) " +
+                     "VALUES (?, ?, ?, ?, ?, ?) RETURNING animal_id";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, animal.getNome());
+            stmt.setString(2, animal.getEspecie());
+            stmt.setString(3, animal.getRaca());
+            stmt.setInt(4, animal.getIdade());
+            stmt.setDouble(5, animal.getPeso());
+            stmt.setInt(6, tutorId);
+            
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("animal_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     private Animal mapearAnimal(ResultSet rs, Tutor tutor) throws SQLException {

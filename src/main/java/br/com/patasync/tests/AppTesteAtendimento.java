@@ -6,6 +6,7 @@ import br.com.patasync.db.dao.TutorDAO;
 import br.com.patasync.models.*;
 import br.com.patasync.services.AtendimentoService;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class AppTesteAtendimento {
@@ -63,18 +64,118 @@ public class AppTesteAtendimento {
         System.out.println("Tutor encontrado: " + tutor.getNome());
 
         // === Buscar Animal ===
-        System.out.println("\n=== Buscar Animal ===");
-        System.out.print("Digite o nome do animal: ");
-        String nomeAnimal = scanner.nextLine();
+        System.out.println("\n=== Animais do Tutor ===");
+        List<Animal> animais = animalDAO.buscarTodosPorTutor(tutor.getTutorId(), tutor);
         
-        Animal animal = animalDAO.buscarPorNomeETutor(nomeAnimal, tutor);
-        if (animal == null) {
-            System.out.println("Animal não encontrado para este tutor.");
-            scanner.close();
-            return;
+        Animal animalSelecionado = null;
+        
+        if (animais.isEmpty()) {
+            System.out.println("Nenhum animal cadastrado para este tutor.");
+            System.out.println("Deseja cadastrar um novo animal? (S/N)");
+            String opcao = scanner.nextLine().toUpperCase();
+            
+            if (opcao.equals("S")) {
+                System.out.println("\n=== Cadastro de Animal ===");
+                System.out.print("Nome do animal: ");
+                String nomeAnimal = scanner.nextLine();
+                
+                System.out.print("Espécie do animal: ");
+                String especieAnimal = scanner.nextLine();
+                
+                System.out.print("Raça do animal: ");
+                String racaAnimal = scanner.nextLine();
+                
+                System.out.print("Idade do animal (anos): ");
+                int idadeAnimal = Integer.parseInt(scanner.nextLine());
+                
+                System.out.print("Peso do animal (ex: 7 ou 7kg): ");
+                String pesoTexto = scanner.nextLine();
+                pesoTexto = pesoTexto.replaceAll("[^0-9.,]", "");
+                pesoTexto = pesoTexto.replace(",", ".");
+                double pesoAnimal = Double.parseDouble(pesoTexto);
+                
+                Animal novoAnimal = new Animal(
+                    nomeAnimal,
+                    especieAnimal,
+                    racaAnimal,
+                    idadeAnimal,
+                    pesoAnimal,
+                    tutor
+                );
+                
+                int animalId = animalDAO.inserirAnimal(novoAnimal, tutor.getTutorId());
+                if (animalId > 0) {
+                    System.out.println("Animal cadastrado com sucesso!");
+                    tutor.adicionarAnimal(novoAnimal);
+                    animalSelecionado = novoAnimal;
+                } else {
+                    System.out.println("Erro ao cadastrar animal.");
+                    scanner.close();
+                    return;
+                }
+            } else {
+                System.out.println("Operação cancelada.");
+                scanner.close();
+                return;
+            }
+        } else {
+            System.out.println("Animais encontrados:");
+            for (int i = 0; i < animais.size(); i++) {
+                Animal a = animais.get(i);
+                System.out.println((i + 1) + ". " + a.getNome() + " - " + a.getEspecie() + " (" + a.getRaca() + ") - " + a.getIdade() + " anos");
+            }
+            
+            System.out.println("\nSelecione o animal (número) ou digite 0 para cadastrar novo:");
+            int escolha = Integer.parseInt(scanner.nextLine());
+            
+            if (escolha == 0) {
+                System.out.println("\n=== Cadastro de Animal ===");
+                System.out.print("Nome do animal: ");
+                String nomeAnimal = scanner.nextLine();
+                
+                System.out.print("Espécie do animal: ");
+                String especieAnimal = scanner.nextLine();
+                
+                System.out.print("Raça do animal: ");
+                String racaAnimal = scanner.nextLine();
+                
+                System.out.print("Idade do animal (anos): ");
+                int idadeAnimal = Integer.parseInt(scanner.nextLine());
+                
+                System.out.print("Peso do animal (ex: 7 ou 7kg): ");
+                String pesoTexto = scanner.nextLine();
+                pesoTexto = pesoTexto.replaceAll("[^0-9.,]", "");
+                pesoTexto = pesoTexto.replace(",", ".");
+                double pesoAnimal = Double.parseDouble(pesoTexto);
+                
+                Animal novoAnimal = new Animal(
+                    nomeAnimal,
+                    especieAnimal,
+                    racaAnimal,
+                    idadeAnimal,
+                    pesoAnimal,
+                    tutor
+                );
+                
+                int animalId = animalDAO.inserirAnimal(novoAnimal, tutor.getTutorId());
+                if (animalId > 0) {
+                    System.out.println("Animal cadastrado com sucesso!");
+                    tutor.adicionarAnimal(novoAnimal);
+                    animalSelecionado = novoAnimal;
+                } else {
+                    System.out.println("Erro ao cadastrar animal.");
+                    scanner.close();
+                    return;
+                }
+            } else if (escolha > 0 && escolha <= animais.size()) {
+                animalSelecionado = animais.get(escolha - 1);
+                System.out.println("Animal selecionado: " + animalSelecionado.getNome());
+            } else {
+                System.out.println("Opção inválida.");
+                scanner.close();
+                return;
+            }
         }
-        System.out.println("Animal encontrado: " + animal.getNome() + " (" + animal.getEspecie() + ")");
-        tutor.adicionarAnimal(animal);
 
         AtendimentoService atendimentoService = new AtendimentoService();
 
@@ -82,7 +183,7 @@ public class AppTesteAtendimento {
         Atendimento atendimento = atendimentoService.abrirAtendimento(
             atendente,
             tutor,
-            animal,
+            animalSelecionado,
             veterinario
         );
 

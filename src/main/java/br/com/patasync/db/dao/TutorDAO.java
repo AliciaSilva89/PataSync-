@@ -55,7 +55,7 @@ public class TutorDAO {
     public Tutor buscarPorCPF(String cpf) {
         String sql = "SELECT p.pessoa_id, p.nome, p.cpf, p.telefone, p.email, " +
                      "p.logradouro, p.numero, p.complemento, p.cep, p.cidade, p.estado, " +
-                     "p.profissao, p.data_nascimento, p.sexo, p.estado_civil " +
+                     "p.profissao, p.data_nascimento, p.sexo, p.estado_civil, t.tutor_id " +
                      "FROM pessoa p " +
                      "JOIN tutor t ON p.pessoa_id = t.pessoa_id " +
                      "WHERE p.cpf = ?";
@@ -67,12 +67,35 @@ public class TutorDAO {
             ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
-                return mapearTutor(rs);
+                Tutor tutor = mapearTutor(rs);
+                tutor.setTutorId(rs.getInt("tutor_id"));
+                return tutor;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public int buscarTutorIdPorCPF(String cpf) {
+        String sql = "SELECT t.tutor_id " +
+                     "FROM pessoa p " +
+                     "JOIN tutor t ON p.pessoa_id = t.pessoa_id " +
+                     "WHERE p.cpf = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, cpf);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("tutor_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     private Tutor mapearTutor(ResultSet rs) throws SQLException {
