@@ -2,10 +2,12 @@ package br.com.patasync.tests;
 
 import br.com.patasync.db.dao.AnimalDAO;
 import br.com.patasync.db.dao.FuncionarioDAO;
+import br.com.patasync.db.dao.MedicacaoDAO;
 import br.com.patasync.db.dao.TutorDAO;
 import br.com.patasync.models.*;
 import br.com.patasync.services.AtendimentoService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -22,6 +24,7 @@ public class AppTesteAtendimento {
         FuncionarioDAO funcionarioDAO = new FuncionarioDAO();
         TutorDAO tutorDAO = new TutorDAO();
         AnimalDAO animalDAO = new AnimalDAO();
+        MedicacaoDAO medicacaoDAO = new MedicacaoDAO();
 
         // Buscar atendente disponível
         Atendente atendente = funcionarioDAO.buscarPrimeiroAtendente();
@@ -194,34 +197,81 @@ public class AppTesteAtendimento {
         );
 
         // Registro de Medicação
-        System.out.println("\n=== Registro de Medicação ===");
-        System.out.print("Nome da medicação: ");
-        String nomeMedicacao = scanner.nextLine();
-
-        System.out.print("Dosagem (ex: 20 mg): ");
-        String dosagem = scanner.nextLine();
-
-        System.out.print("Quantidade: ");
-        int quantidade = Integer.parseInt(scanner.nextLine());
-
-        System.out.print("Valor unitário (R$): ");
-        String valorUnitarioTexto = scanner.nextLine();
-        valorUnitarioTexto = valorUnitarioTexto.replaceAll("[^0-9.,]", "");
-        valorUnitarioTexto = valorUnitarioTexto.replace(",", ".");
-        double valorUnitario = Double.parseDouble(valorUnitarioTexto);
-
-        Medicacao medicacao = new Medicacao(
-            nomeMedicacao,
-            dosagem,
-            quantidade,
-            valorUnitario
-        );
-
-        atendimentoService.aplicarMedicacao(
-            assistente,
-            atendimento,
-            medicacao
-        );
+        System.out.println("\n=== Registro de Medicações ===");
+        List<Medicacao> medicamentosDisponiveis = medicacaoDAO.buscarTodas();
+        List<Medicacao> medicamentosSelecionados = new ArrayList<>();
+        
+        if (medicamentosDisponiveis.isEmpty()) {
+            System.out.println("Nenhuma medicação cadastrada no sistema.");
+            System.out.println("Deseja cadastrar uma nova medicação? (S/N)");
+            String opcao = scanner.nextLine().toUpperCase();
+            
+            if (opcao.equals("S")) {
+                cadastrarNovaMedicacao(scanner, medicacaoDAO, medicamentosSelecionados);
+            }
+        } else {
+            System.out.println("Medicações disponíveis:");
+            for (int i = 0; i < medicamentosDisponiveis.size(); i++) {
+                Medicacao m = medicamentosDisponiveis.get(i);
+                System.out.println((i + 1) + ". " + m.getNome() + " - " + m.getClasseIndicacao() + " - R$ " + m.getValorUnitario());
+                System.out.println("   Princípio ativo: " + m.getPrincipioAtivo());
+                System.out.println("   Dosagem média: " + m.getDosagem());
+                if (m.getObservacoes() != null && !m.getObservacoes().isEmpty()) {
+                    System.out.println("   Observações: " + m.getObservacoes());
+                }
+                System.out.println();
+            }
+            
+            System.out.println("Selecione as medicações (separadas por vírgula) ou digite 0 para cadastrar nova:");
+            System.out.println("Exemplo: 1,3,5 para selecionar medicações 1, 3 e 5");
+            String entrada = scanner.nextLine();
+            
+            if (entrada.equals("0")) {
+                cadastrarNovaMedicacao(scanner, medicacaoDAO, medicamentosSelecionados);
+            } else {
+                String[] selecoes = entrada.split(",");
+                for (String s : selecoes) {
+                    try {
+                        int indice = Integer.parseInt(s.trim()) - 1;
+                        if (indice >= 0 && indice < medicamentosDisponiveis.size()) {
+                            Medicacao medicacaoBase = medicamentosDisponiveis.get(indice);
+                            
+                            System.out.print("Quantidade para " + medicacaoBase.getNome() + ": ");
+                            int quantidade = Integer.parseInt(scanner.nextLine());
+                            
+                            Medicacao medicacaoSelecionada = new Medicacao(
+                                medicacaoBase.getNome(),
+                                medicacaoBase.getDosagem(),
+                                quantidade,
+                                medicacaoBase.getValorUnitario()
+                            );
+                            medicacaoSelecionada.setPrincipioAtivo(medicacaoBase.getPrincipioAtivo());
+                            medicacaoSelecionada.setClasseIndicacao(medicacaoBase.getClasseIndicacao());
+                            medicacaoSelecionada.setCategoriaClinica(medicacaoBase.getCategoriaClinica());
+                            medicacaoSelecionada.setObservacoes(medicacaoBase.getObservacoes());
+                            
+                            medicamentosSelecionados.add(medicacaoSelecionada);
+                            System.out.println("Medicação adicionada: " + medicacaoBase.getNome() + " (Qtd: " + quantidade + ")");
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Entrada inválida: " + s);
+                    }
+                }
+            }
+        }
+        
+        // Aplicar medicações selecionadas
+        for (Medicacao medicacao : medicamentosSelecionados) {
+            atendimentoService.aplicarMedicacao(
+                assistente,
+                atendimento,
+                medicacao
+            );
+        }
+        
+        if (!medicamentosSelecionados.isEmpty()) {
+            System.out.println("\nTotal de " + medicamentosSelecionados.size() + " medicação(ões) registrada(s).");
+        }
 
         // Diagnóstico
         System.out.println("\n=== Registro de Diagnóstico ===");
@@ -275,5 +325,93 @@ public class AppTesteAtendimento {
         }
 
         scanner.close();
+    }
+
+    private static void cadastrarNovaMedicacao(Scanner scanner, MedicacaoDAO medicacaoDAO, List<Medicacao> medicamentosSelecionados) {
+        System.out.println("\n=== Cadastro de Nova Medicação ===");
+        System.out.print("Nome da medicação: ");
+        String nome = scanner.nextLine();
+        
+        System.out.print("Princípio ativo: ");
+        String principioAtivo = scanner.nextLine();
+        
+        System.out.print("Classe de indicação: ");
+        String classeIndicacao = scanner.nextLine();
+        
+        System.out.print("Dosagem média: ");
+        String dosagem = scanner.nextLine();
+        
+        System.out.print("Categoria clínica: ");
+        String categoriaClinica = scanner.nextLine();
+        
+        System.out.print("Valor unitário (R$): ");
+        String valorUnitarioTexto = scanner.nextLine();
+        valorUnitarioTexto = valorUnitarioTexto.replaceAll("[^0-9.,]", "");
+        valorUnitarioTexto = valorUnitarioTexto.replace(",", ".");
+        double valorUnitario = Double.parseDouble(valorUnitarioTexto);
+        
+        System.out.print("Observações (opcional, pode deixar vazio): ");
+        String observacoes = scanner.nextLine();
+        
+        System.out.print("Quantidade: ");
+        int quantidade = Integer.parseInt(scanner.nextLine());
+        
+        Medicacao novaMedicacao = new Medicacao(nome, dosagem, quantidade, valorUnitario);
+        novaMedicacao.setPrincipioAtivo(principioAtivo);
+        novaMedicacao.setClasseIndicacao(classeIndicacao);
+        novaMedicacao.setCategoriaClinica(categoriaClinica);
+        novaMedicacao.setObservacoes(observacoes);
+        
+        int medicamentoId = medicacaoDAO.inserirMedicacao(novaMedicacao);
+        if (medicamentoId > 0) {
+            System.out.println("Medicação cadastrada com sucesso!");
+            medicamentosSelecionados.add(novaMedicacao);
+            
+            System.out.println("Deseja adicionar mais medicações? (S/N)");
+            String opcao = scanner.nextLine().toUpperCase();
+            if (opcao.equals("S")) {
+                // Recarregar lista de medicamentos disponíveis
+                List<Medicacao> medicamentosDisponiveis = medicacaoDAO.buscarTodas();
+                System.out.println("\nMedicações disponíveis:");
+                for (int i = 0; i < medicamentosDisponiveis.size(); i++) {
+                    Medicacao m = medicamentosDisponiveis.get(i);
+                    System.out.println((i + 1) + ". " + m.getNome() + " - " + m.getClasseIndicacao() + " - R$ " + m.getValorUnitario());
+                }
+                
+                System.out.println("Selecione as medicações (separadas por vírgula):");
+                String entrada = scanner.nextLine();
+                
+                String[] selecoes = entrada.split(",");
+                for (String s : selecoes) {
+                    try {
+                        int indice = Integer.parseInt(s.trim()) - 1;
+                        if (indice >= 0 && indice < medicamentosDisponiveis.size()) {
+                            Medicacao medicacaoBase = medicamentosDisponiveis.get(indice);
+                            
+                            System.out.print("Quantidade para " + medicacaoBase.getNome() + ": ");
+                            int qtd = Integer.parseInt(scanner.nextLine());
+                            
+                            Medicacao medicacaoSelecionada = new Medicacao(
+                                medicacaoBase.getNome(),
+                                medicacaoBase.getDosagem(),
+                                qtd,
+                                medicacaoBase.getValorUnitario()
+                            );
+                            medicacaoSelecionada.setPrincipioAtivo(medicacaoBase.getPrincipioAtivo());
+                            medicacaoSelecionada.setClasseIndicacao(medicacaoBase.getClasseIndicacao());
+                            medicacaoSelecionada.setCategoriaClinica(medicacaoBase.getCategoriaClinica());
+                            medicacaoSelecionada.setObservacoes(medicacaoBase.getObservacoes());
+                            
+                            medicamentosSelecionados.add(medicacaoSelecionada);
+                            System.out.println("Medicação adicionada: " + medicacaoBase.getNome() + " (Qtd: " + qtd + ")");
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Entrada inválida: " + s);
+                    }
+                }
+            }
+        } else {
+            System.out.println("Erro ao cadastrar medicação.");
+        }
     }
 }

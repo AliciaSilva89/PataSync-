@@ -7,6 +7,7 @@ br\com\patasync\models\TipoAcaoAtendimento.class
 br\com\patasync\db\dao\FuncionarioDAO.class
 br\com\patasync\db\dao\TutorDAO.class
 br\com\patasync\db\DatabaseConnection.class
+br\com\patasync\db\dao\MedicacaoDAO.class
 br\com\patasync\models\Medicacao.class
 br\com\patasync\models\Procedimento.class
 br\com\patasync\models\AssistenteVeterinario.class
