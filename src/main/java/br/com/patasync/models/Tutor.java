@@ -6,6 +6,7 @@ import java.util.List;
 
 public class Tutor extends Pessoa {
 
+    private int tutorId;
     private List<Animal> animais;
 
     public Tutor(String nome,
@@ -39,6 +40,14 @@ public class Tutor extends Pessoa {
               estadoCivil);
 
         this.animais = new ArrayList<>();
+    }
+
+    public int getTutorId() {
+        return tutorId;
+    }
+
+    public void setTutorId(int tutorId) {
+        this.tutorId = tutorId;
     }
 
     public List<Animal> getAnimais() {

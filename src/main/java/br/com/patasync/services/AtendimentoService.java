@@ -7,11 +7,13 @@ import java.time.LocalDateTime;
 public class AtendimentoService {
 
     public Atendimento abrirAtendimento(Atendente atendente,
+                                        Tutor tutor,
                                         Animal animal,
                                         Veterinario responsavelPrincipal) {
         // Cria um novo atendimento
         Atendimento atendimento = new Atendimento(
             animal,
+            tutor,
             LocalDateTime.now(),
             responsavelPrincipal
         );
