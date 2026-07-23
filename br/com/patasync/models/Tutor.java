@@ -1,5 +1,6 @@
 package br.com.patasync.models;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,9 +11,33 @@ public class Tutor extends Pessoa {
     public Tutor(String nome,
                  String cpf,
                  String telefone,
-                 String endereco,
-                 String profissao) {
-        super(nome, cpf, telefone, endereco, profissao);
+                 String email,
+                 String logradouro,
+                 String numero,
+                 String complemento,
+                 String cep,
+                 String cidade,
+                 String estado,
+                 String profissao,
+                 LocalDate dataNascimento,
+                 String sexo,
+                 String estadoCivil) {
+
+        super(nome,
+              cpf,
+              telefone,
+              email,
+              logradouro,
+              numero,
+              complemento,
+              cep,
+              cidade,
+              estado,
+              profissao,
+              dataNascimento,
+              sexo,
+              estadoCivil);
+
         this.animais = new ArrayList<>();
     }
 
